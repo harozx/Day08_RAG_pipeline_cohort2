@@ -166,11 +166,16 @@ async def stats_endpoint():
     openai_key = os.getenv("OPENAI_API_KEY", "")
     pageindex_key = os.getenv("PAGEINDEX_API_KEY", "")
     
+    # Filter out common placeholder values
+    gemini_ok = bool(api_key and "mock" not in api_key.lower() and len(api_key.strip()) > 10)
+    openai_ok = bool(openai_key and "xxx" not in openai_key.lower() and len(openai_key.strip()) > 10)
+    pageindex_ok = bool(pageindex_key and not pageindex_key.startswith("pi_") and len(pageindex_key.strip()) > 10)
+
     return {
         "status": {
-            "gemini": "ONLINE" if api_key else "OFFLINE",
-            "openai": "ONLINE" if openai_key else "OFFLINE",
-            "pageindex": "ACTIVE" if (pageindex_key and not pageindex_key.startswith("pi_")) else "FALLBACK"
+            "gemini": "ONLINE" if gemini_ok else "OFFLINE",
+            "openai": "ONLINE" if openai_ok  else "OFFLINE",
+            "pageindex": "ACTIVE" if pageindex_ok else "FALLBACK"
         },
         "stats": {
             "indexed_documents": 8,
