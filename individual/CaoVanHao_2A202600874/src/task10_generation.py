@@ -109,9 +109,16 @@ def generate_offline_fallback(query: str, chunks: list[dict]) -> str:
         "Đây là câu trả lời ngoại tuyến được tổng hợp từ các tài liệu tìm thấy:",
         f"Dựa trên truy vấn '{query}', tôi đã tìm thấy các nguồn tài liệu liên quan sau:"
     ]
-    for i, chunk in enumerate(chunks, 1):
+    seen_snippets = set()
+    for chunk in chunks:
         source = chunk.get("metadata", {}).get("source", "Tài liệu")
         snippet = chunk["content"][:250].strip().replace("\n", " ")
+        # Deduplicate based on first 100 characters of normalized snippet
+        normalized_part = snippet[:100].lower().strip()
+        if normalized_part in seen_snippets:
+            continue
+        seen_snippets.add(normalized_part)
+        
         response_parts.append(f"- [{source}] {snippet}...")
         
     response_parts.append("\nVui lòng cấu hình OPENAI_API_KEY trong file .env để nhận câu trả lời đầy đủ từ mô hình ngôn ngữ lớn.")
