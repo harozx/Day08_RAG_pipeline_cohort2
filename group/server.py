@@ -152,7 +152,7 @@ async def chat_endpoint(request: ChatRequest):
             
     if not answer:
         # Generate offline fallback
-        answer = generate_offline_fallback(request.message, chunks)
+        answer = generate_offline_fallback(standalone_query, chunks)
         
     return ChatResponse(
         answer=answer,
