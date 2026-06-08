@@ -1,24 +1,33 @@
 import os
 import sys
 import time
-import re
 from pathlib import Path
 
 # Hotpatch PyTorch to prevent Streamlit's local sources watcher from crashing
 # when examining torch._classes.__getattr__ for missing custom classes
 try:
     import torch
-    original_getattr = torch._classes._ClassesParent.__getattr__
-    def patched_getattr(self, attr):
-        if attr in ('__path__', '__file__', '__package__', '_path'):
-            raise AttributeError(f"Mocking {attr} to avoid PyTorch crash")
+    # Patch _ClassesParent to convert ALL RuntimeErrors to AttributeError
+    _orig = torch._classes._ClassesParent.__getattr__
+    def _safe_getattr(self, attr):
         try:
-            return original_getattr(self, attr)
+            return _orig(self, attr)
         except RuntimeError as e:
             raise AttributeError(str(e)) from e
-    torch._classes._ClassesParent.__getattr__ = patched_getattr
+    torch._classes._ClassesParent.__getattr__ = _safe_getattr
+
+    # Also patch torch._classes itself if it has __getattr__
+    import types as _types
+    _classes_mod = torch._classes
+    def _classes_module_getattr(name):
+        if name in ('__path__', '__file__', '__package__', '_path',
+                     '__spec__', '__loader__', '__all__'):
+            raise AttributeError(f"{name} not available on torch._classes")
+        raise AttributeError(f"module 'torch._classes' has no attribute '{name}'")
+    _classes_mod.__getattr__ = _classes_module_getattr
 except Exception:
     pass
+
 
 import streamlit as st
 from dotenv import load_dotenv
@@ -32,7 +41,6 @@ load_dotenv(dotenv_path=student_env_path)
 
 # Import retrieval and generation modules
 from individual.CaoVanHao_2A202600874.src.task9_retrieval_pipeline import retrieve
-from individual.CaoVanHao_2A202600874.src.task5_semantic_search import semantic_search
 from individual.CaoVanHao_2A202600874.src.task10_generation import (
     SYSTEM_PROMPT, TEMPERATURE, TOP_P, format_context, reorder_for_llm, generate_offline_fallback
 )
@@ -43,14 +51,14 @@ from google.genai import types
 # STREAMLIT PAGE CONFIGURATION
 # =============================================================================
 st.set_page_config(
-    page_title="Drug Law Conversational RAG Chatbot",
+    page_title="Drug Law QA Chatbot",
     page_icon="⚖️",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
 # =============================================================================
-# CUSTOM CSS INJECTION FOR PREMIUM AESTHETICS & MICRO-ANIMATIONS
+# CUSTOM CSS INJECTION FOR PREMIUM AESTHETICS
 # =============================================================================
 st.markdown("""
 <style>
@@ -63,59 +71,51 @@ html, body, [class*="css"], .stMarkdown {
 
 /* Premium Dark Gradient Background */
 .stApp {
-    background: linear-gradient(135deg, #070913 0%, #0f1328 50%, #161936 100%) !important;
+    background: linear-gradient(135deg, #0b0f19 0%, #151a2e 100%) !important;
     color: #f1f5f9 !important;
 }
 
 /* Sidebar Custom Styling */
 [data-testid="stSidebar"] {
-    background-color: #070914 !important;
-    border-right: 1px solid rgba(99, 102, 241, 0.15);
+    background-color: #0c0f1c !important;
+    border-right: 1px solid rgba(255, 255, 255, 0.05);
 }
 
-/* Header/Title Container */
-.header-container {
-    background: rgba(15, 23, 42, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 24px;
-    padding: 1.5rem 2rem;
-    margin-bottom: 2rem;
-    backdrop-filter: blur(12px);
-    box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+/* Title Gradient */
+.title-container {
+    padding: 1.5rem 0 0.5rem 0;
 }
-
 .title-gradient {
     background: linear-gradient(to right, #6366f1, #a855f7, #ec4899);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    font-size: 2.8rem;
+    font-size: 3.2rem;
     font-weight: 800;
     letter-spacing: -1px;
 }
 
-/* Custom Styled Sidebar Cards */
-.sidebar-card {
-    background: rgba(30, 41, 59, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    border-radius: 16px;
-    padding: 12px 16px;
-    margin-bottom: 12px;
+/* Chat Input Styling */
+.stChatInput {
+    border-radius: 30px !important;
+    border: 1px solid rgba(99, 102, 241, 0.3) !important;
+    background: rgba(30, 41, 59, 0.4) !important;
+    color: white !important;
+    backdrop-filter: blur(10px);
 }
 
-/* Chat Bubbles Container Alignment */
+/* Custom Chat Bubbles */
 .chat-message-user {
     display: flex;
     justify-content: flex-end;
-    margin-bottom: 1.2rem;
-    animation: fadeInRight 0.4s ease;
+    margin-bottom: 1rem;
 }
 .chat-bubble-user {
     background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%);
     color: white;
-    padding: 14px 20px;
-    border-radius: 24px 24px 4px 24px;
-    max-width: 70%;
-    box-shadow: 0 4px 20px rgba(79, 70, 229, 0.25);
+    padding: 12px 18px;
+    border-radius: 20px 20px 4px 20px;
+    max-width: 75%;
+    box-shadow: 0 4px 15px rgba(79, 70, 229, 0.3);
     font-size: 1.05rem;
     line-height: 1.5;
 }
@@ -123,114 +123,52 @@ html, body, [class*="css"], .stMarkdown {
 .chat-message-bot {
     display: flex;
     justify-content: flex-start;
-    margin-bottom: 1.2rem;
-    animation: fadeInLeft 0.4s ease;
+    margin-bottom: 1rem;
 }
 .chat-bubble-bot {
-    background: rgba(22, 27, 49, 0.55);
-    backdrop-filter: blur(12px);
-    border: 1px solid rgba(99, 102, 241, 0.15);
+    background: rgba(26, 31, 51, 0.6);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
     color: #e2e8f0;
-    padding: 16px 22px;
-    border-radius: 24px 24px 24px 4px;
+    padding: 14px 20px;
+    border-radius: 20px 20px 20px 4px;
     max-width: 80%;
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     font-size: 1.05rem;
     line-height: 1.6;
 }
 
-/* Premium Citation Badge style */
+/* Source badge custom styling */
 .source-badge {
-    background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(168, 85, 247, 0.2) 100%);
-    color: #a5b4fc;
-    border: 1px solid rgba(99, 102, 241, 0.4);
-    border-radius: 8px;
+    background: rgba(99, 102, 241, 0.15);
+    color: #818cf8;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 12px;
     padding: 2px 8px;
-    font-size: 0.82rem;
-    font-weight: 600;
-    display: inline-block;
-    margin: 2px 4px;
-    box-shadow: 0 2px 8px rgba(99, 102, 241, 0.15);
-}
-
-/* Stat text styling */
-.stat-label {
-    color: #94a3b8;
-    font-size: 0.85rem;
+    font-size: 0.8rem;
+    margin-right: 5px;
     font-weight: 500;
 }
-.stat-val {
-    color: #f1f5f9;
-    font-size: 1rem;
-    font-weight: 700;
-}
 
-/* Glassmorphic Intro Container */
-.intro-container {
-    background: rgba(26, 32, 58, 0.35);
-    backdrop-filter: blur(16px);
-    border: 1px solid rgba(99, 102, 241, 0.15);
-    border-radius: 28px;
-    padding: 2.5rem;
-    margin-top: 1rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
-}
-
-/* Animations */
-@keyframes fadeInLeft {
-    from { opacity: 0; transform: translateX(-20px); }
-    to { opacity: 1; transform: translateX(0); }
-}
-@keyframes fadeInRight {
-    from { opacity: 0; transform: translateX(20px); }
-    to { opacity: 1; transform: translateX(0); }
-}
-
-/* Quick Question Buttons styling overrides */
+/* Quick Question Buttons */
 div.stButton > button {
-    background: rgba(30, 41, 59, 0.3) !important;
+    background: rgba(30, 41, 59, 0.4) !important;
     color: #e2e8f0 !important;
-    border: 1px solid rgba(99, 102, 241, 0.2) !important;
-    border-radius: 24px !important;
-    padding: 10px 20px !important;
-    font-size: 0.92rem !important;
-    font-weight: 500 !important;
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.08) !important;
+    border-radius: 20px !important;
+    padding: 8px 16px !important;
+    font-size: 0.9rem !important;
+    transition: all 0.3s ease !important;
 }
 div.stButton > button:hover {
-    background: linear-gradient(135deg, #4f46e5 0%, #a855f7 100%) !important;
+    background: linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%) !important;
     color: white !important;
     border-color: transparent !important;
-    box-shadow: 0 6px 20px rgba(124, 58, 237, 0.3) !important;
-    transform: translateY(-3px) !important;
-}
-
-/* Code block customization */
-code {
-    background-color: rgba(30, 41, 59, 0.5) !important;
-    border: 1px solid rgba(255, 255, 255, 0.05) !important;
-    border-radius: 6px !important;
-    color: #f43f5e !important;
-    padding: 2px 6px !important;
-    font-size: 0.9rem !important;
+    box-shadow: 0 4px 12px rgba(79, 70, 229, 0.25) !important;
+    transform: translateY(-2px) !important;
 }
 </style>
 """, unsafe_allow_html=True)
-
-# =============================================================================
-# CITATION HIGHLIGHTER ENGINE
-# =============================================================================
-
-def highlight_citations(text: str) -> str:
-    """
-    Tìm các thẻ trích dẫn dạng [Nguồn, Điều...] và thay bằng thẻ HTML badge sang trọng.
-    Bỏ qua các liên kết Markdown thông thường dạng [text](link).
-    """
-    # Regex đảm bảo không match markdown links: tìm bracket mở không đi sau một bracket đóng,
-    # và bracket đóng không đi trước một dấu ngoặc tròn mở.
-    pattern = r'(?<!\])\[([^\]\(\)]+)\](?!\()'
-    return re.sub(pattern, r"<span class='source-badge'>[\1]</span>", text)
 
 # =============================================================================
 # CONVERSATIONAL QUERY REWRITER
@@ -342,9 +280,9 @@ if "messages" not in st.session_state:
 # SIDEBAR CONTROL PANEL
 # =============================================================================
 with st.sidebar:
-    st.image("https://img.icons8.com/color/120/scales.png", width=65)
-    st.markdown("<h2 style='margin:0; font-weight:800; font-size:1.45rem;'>COHORT 2 — RAG</h2>", unsafe_allow_html=True)
-    st.markdown("<p class='stat-label' style='margin-bottom:1rem;'>Hệ thống tra cứu pháp lý & tin tức ma túy</p>", unsafe_allow_html=True)
+    st.image("https://img.icons8.com/color/120/scales.png", width=70)
+    st.markdown("### **ĐỒ ÁN NHÓM**")
+    st.markdown("### **Hệ Thống RAG Hỏi Đáp Pháp Luật**")
     st.write("---")
     
     # API key indicators
@@ -352,124 +290,54 @@ with st.sidebar:
     openai_key = os.getenv("OPENAI_API_KEY", "")
     pageindex_key = os.getenv("PAGEINDEX_API_KEY", "")
     
-    st.markdown("#### 🌐 **Trạng thái API**")
+    st.markdown("#### **Trạng thái kết nối API**")
     if api_key:
-        st.success("🟢 Gemini API: ONLINE")
+        st.success("🟢 Gemini API: Sẵn sàng")
     else:
-        st.warning("🟡 Gemini API: OFFLINE")
+        st.warning("🟡 Gemini API: Sử dụng Offline Fallback")
         
     if pageindex_key and not pageindex_key.startswith("pi_"):
-        st.success("🟢 PageIndex: ACTIVE")
+        st.success("🟢 PageIndex (Vectify): Sẵn sàng")
     else:
-        st.info("🔵 PageIndex: FALLBACK")
+        st.info("🔵 PageIndex (Vectify): Offline Fallback")
         
-    st.write("---")
-    
-    # System stats card
-    st.markdown("#### 📈 **RAG System Stats**")
-    st.markdown(
-        """
-        <div class="sidebar-card">
-            <span class="stat-label">Indexed Documents:</span> <span class="stat-val">8 files</span><br>
-            <span class="stat-label">Total Text Chunks:</span> <span class="stat-val">55 chunks</span><br>
-            <span class="stat-label">Embedding Dim:</span> <span class="stat-val">384 (MiniLM)</span><br>
-            <span class="stat-label">Indexer Status:</span> <span class="stat-val" style="color:#10b981;">100% Synced</span>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-    
-    # Indexed Documents List Card
-    st.markdown("#### 📂 **Tài liệu đã Vector hóa**")
-    st.markdown(
-        """
-        <div class="sidebar-card" style="font-size:0.85rem; line-height:1.4;">
-            ⚖️ <b>Văn bản pháp luật (3):</b>
-            <ul style="margin:4px 0 8px 12px; padding:0;">
-                <li>Bộ luật Hình sự 2015 (Chương XX)</li>
-                <li>Luật Phòng, chống ma túy 2021</li>
-                <li>Nghị định 105/2021/NĐ-CP</li>
-            </ul>
-            📰 <b>Tin tức báo chí (5):</b>
-            <ul style="margin:4px 0 0 12px; padding:0;">
-                <li>Chi Dân / An Tây / Trúc Phương</li>
-                <li>Diễn viên hài Hữu Tín</li>
-            </ul>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
-    
     st.write("---")
     
     # Quick clear button
-    if st.button("🧹 Clear Chat History", use_container_width=True):
+    if st.button("🧹 Xóa lịch sử chat"):
         st.session_state.messages = []
         st.rerun()
         
     # Team members info
-    st.markdown("<p class='stat-label' style='text-align:center; margin-top:20px;'>Được phát triển bởi: <br><b>Cao Văn Hảo — 2A202600874</b></p>", unsafe_allow_html=True)
+    st.markdown("#### **Thành viên nhóm**")
+    st.info("👤 Cao Văn Hảo - 2A202600874")
+    
+    # System settings info
+    st.markdown("#### **RAG Configuration**")
+    st.write(f"- Chunk Size: 500 characters")
+    st.write(f"- Retrieval: Hybrid (BM25 + Semantic)")
+    st.write(f"- Reranking: Cross-Encoder (Local/Jina)")
 
 # =============================================================================
 # MAIN INTERFACE
 # =============================================================================
-st.markdown(
-    """
-    <div class="header-container">
-        <div style="display:flex; align-items:center; gap:15px;">
-            <img src="https://img.icons8.com/color/120/scales.png" width="55" />
-            <div>
-                <span class="title-gradient">Drug Law Conversational RAG</span>
-                <p style="margin:4px 0 0 0; color:#94a3b8; font-size:1.1rem;">Hỏi đáp thông minh về Luật ma túy & Hồ sơ nghệ sĩ vi phạm pháp luật</p>
-            </div>
-        </div>
-    </div>
-    """,
-    unsafe_allow_html=True
-)
-
-# Render introductory screen if no message history
-if not st.session_state.messages:
-    st.markdown(
-        """
-        <div class="intro-container">
-            <h3 style="margin-top:0; color:#818cf8; font-weight:700;">👋 Chào mừng bạn đến với RAG Chatbot!</h3>
-            <p>Hệ thống tích hợp kỹ thuật <b>Hybrid Search (Dense + Sparse)</b>, chấm điểm lại ứng viên bằng <b>Reranking</b>, kết hợp cơ chế <b>PageIndex fallback</b> ngoại tuyến và mô hình ngôn ngữ lớn <b>Gemini 2.5 Flash</b> để đưa ra câu trả lời chuẩn xác nhất kèm trích dẫn văn bản luật đối chiếu.</p>
-            <div style="margin-top:20px; display:flex; gap:30px;">
-                <div>
-                    <h5 style="color:#a855f7; margin-bottom:5px; font-weight:600;">⚡ Hybrid Retrieval</h5>
-                    <span class="stat-label">Kết hợp thế mạnh tìm kiếm từ khóa chính xác BM25 và độ hiểu ngữ nghĩa của Vector Embeddings.</span>
-                </div>
-                <div>
-                    <h5 style="color:#ec4899; margin-bottom:5px; font-weight:600;">📚 Citation Badges</h5>
-                    <span class="stat-label">Hỗ trợ trích dẫn nguồn văn bản rõ ràng đến từng Điều, Khoản của Luật hoặc đầu báo.</span>
-                </div>
-                <div>
-                    <h5 style="color:#3b82f6; margin-bottom:5px; font-weight:600;">🔄 Conversational RAG</h5>
-                    <span class="stat-label">Hỏi tiếp nối tự nhiên nhờ cơ chế Query Rewriting tự động viết lại câu hỏi theo ngữ cảnh chat.</span>
-                </div>
-            </div>
-        </div>
-        """,
-        unsafe_allow_html=True
-    )
+st.markdown("<div class='title-container'><span class='title-gradient'>⚖️ Drug Law RAG Chatbot</span></div>", unsafe_allow_html=True)
+st.write("Hệ thống chatbot thông minh hỗ trợ giải đáp pháp luật phòng, chống ma túy và tra cứu tin tức sự kiện liên quan.")
 
 # Sample questions grid
-st.markdown("#### 💡 **Câu hỏi gợi ý hỏi nhanh:**")
+st.markdown("#### **Câu hỏi gợi ý tra cứu:**")
 col1, col2, col3 = st.columns(3)
 quick_q = None
 
 with col1:
-    if st.button("⚖️ Hình phạt tàng trữ ma túy theo Điều 249?"):
+    if st.button("⚖️ Tội tàng trữ ma túy phạt ra sao?"):
         quick_q = "Hình phạt cho tội tàng trữ trái phép chất ma tuý theo Điều 249 Bộ luật Hình sự?"
 with col2:
-    if st.button("📰 Ca sĩ Chi Dân & An Tây bị truy tố tội gì?"):
-        quick_q = "Ca sĩ Chi Dân và người mẫu An Tây bị truy tố về những tội danh gì?"
+    if st.button("📰 Ca sĩ Chi Dân bị bắt ở đâu?"):
+        quick_q = "Ca sĩ Chi Dân bị truy tố về tội danh gì và bị bắt ở đâu?"
 with col3:
-    if st.button("🏥 Có các hình thức cai nghiện nào theo luật 2021?"):
+    if st.button("🏥 Có các hình thức cai nghiện nào?"):
         quick_q = "Luật Phòng chống ma tuý 2021 quy định những hình thức cai nghiện nào?"
-
-st.write("---")
 
 # Render Chat History
 for message in st.session_state.messages:
@@ -480,18 +348,15 @@ for message in st.session_state.messages:
         </div>
         """, unsafe_allow_html=True)
     else:
-        # Highlight citations in bot response to render nice badges
-        highlighted_answer = highlight_citations(message["content"])
-        
         st.markdown(f"""
         <div class="chat-message-bot">
-            <div class="chat-bubble-bot">{highlighted_answer}</div>
+            <div class="chat-bubble-bot">{message["content"]}</div>
         </div>
         """, unsafe_allow_html=True)
         
         # Display sources if any for this assistant response
         if "sources" in message and message["sources"]:
-            with st.expander("📚 Nguồn thông tin đối chiếu (%d tài liệu được dùng)" % len(message["sources"])):
+            with st.expander("📚 Xem nguồn tài liệu đối chiếu (%d tài liệu)" % len(message["sources"])):
                 for idx, src in enumerate(message["sources"], 1):
                     source_name = src.get("metadata", {}).get("source", "Tài liệu gốc")
                     doc_type = src.get("metadata", {}).get("type", "news")
@@ -507,7 +372,7 @@ for message in st.session_state.messages:
 if quick_q:
     user_input = quick_q
 else:
-    user_input = st.chat_input("Nhập câu hỏi của bạn tại đây về Luật ma túy hoặc tin tức nghệ sĩ...")
+    user_input = st.chat_input("Nhập câu hỏi của bạn tại đây về Luật phòng chống ma túy...")
 
 if user_input:
     # 1. Display User Message
@@ -522,19 +387,16 @@ if user_input:
     with st.spinner("🔍 Đang tìm kiếm tài liệu pháp luật và tạo câu trả lời..."):
         result = process_rag_chat(user_input, api_key, openai_key)
         
-    # 3. Highlight citations in bot response
-    highlighted_answer = highlight_citations(result["answer"])
-    
-    # Display Bot Response
+    # 3. Display Bot Response
     st.markdown(f"""
     <div class="chat-message-bot">
-        <div class="chat-bubble-bot">{highlighted_answer}</div>
+        <div class="chat-bubble-bot">{result["answer"]}</div>
     </div>
     """, unsafe_allow_html=True)
     
     # 4. Display sources in expander
     if result["sources"]:
-        with st.expander("📚 Nguồn thông tin đối chiếu (%d tài liệu được dùng)" % len(result["sources"])):
+        with st.expander("📚 Xem nguồn tài liệu đối chiếu (%d tài liệu)" % len(result["sources"])):
             for idx, src in enumerate(result["sources"], 1):
                 source_name = src.get("metadata", {}).get("source", "Tài liệu gốc")
                 doc_type = src.get("metadata", {}).get("type", "news")

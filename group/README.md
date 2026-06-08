@@ -197,18 +197,43 @@ graph TD
 |-----------|------|----------|------------|
 | **Cao Văn Hảo** | 2A202600874 | - Xây dựng Pipeline RAG cá nhân (Tasks 1-10)<br>- Phát triển FastAPI Backend (`group/server.py`) hỗ trợ CORS và đa khóa API.<br>- Thiết kế & phát triển Frontend ReactJS (`group/frontend/`) với giao diện Glassmorphism tối màu cao cấp.<br>- Phát triển công cụ phân giải Citation Badge động & Modal hiển thị nguồn tài liệu chi tiết. | **Hoàn thành** |
 | **Phạm Quang Huy** | 2A202600586 | - Xây dựng Pipeline RAG cá nhân (Tasks 1-10)<br>- Thiết kế và biên soạn tập dữ liệu vàng **Golden Dataset** (15+ cặp câu hỏi-đáp RAG pháp luật).<br>- Phát triển Pipeline đánh giá tự động sử dụng thư viện **DeepEval** (`group/evaluation/`).<br>- Chạy thử nghiệm và viết báo cáo so sánh kết quả A/B giữa các cấu hình của RAG pipeline. | **Hoàn thành** |
+| **Vũ Tuấn Hoàng** | 2A202600830 | - Xây dựng Pipeline RAG cá nhân (Tasks 1-10)<br>- Thu thập 3 văn bản pháp luật (Bộ luật Hình sự, Luật An ninh mạng, Luật Phòng chống ma túy) và crawl 5 bài báo.<br>- Phát triển RAG Evaluation Pipeline riêng với Golden Dataset và DeepEval (`group_project/evaluation/`).<br>- Viết test suite tự động (`tests/test_individual.py`) kiểm tra toàn bộ pipeline. | **Hoàn thành** |
+
+---
+
+## Yêu Cầu Hệ Thống
+
+- **Python** >= 3.11
+- **Node.js** >= 18 và **npm** >= 9
+- Các thư viện Python chính: `fastapi`, `uvicorn`, `google-genai`, `sentence-transformers`, `rank-bm25`, `python-dotenv`
+- (Tùy chọn) API keys: `GEMINI_API_KEY`, `OPENAI_API_KEY`, `PAGEINDEX_API_KEY`
+
+### Cài đặt thư viện Python
+```bash
+pip install fastapi uvicorn google-genai sentence-transformers rank-bm25 python-dotenv openai
+```
+
+### Cấu hình API Key
+Tạo hoặc chỉnh sửa file `individual/CaoVanHao_2A202600874/.env`:
+```env
+GEMINI_API_KEY=your_gemini_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here    # Tùy chọn
+PAGEINDEX_API_KEY=your_pageindex_key_here  # Tùy chọn
+```
+> **Lưu ý:** Nếu không có API key, hệ thống sẽ tự động sử dụng chế độ **Offline Fallback** để trả lời dựa trên tài liệu tìm được.
 
 ---
 
 ## Hướng Dẫn Chạy
 
-Hệ thống chatbot nhóm đã được nâng cấp sang kiến trúc **FastAPI Backend + ReactJS Frontend (Vite)** giúp tối ưu hóa giao diện người dùng, tăng tốc độ phản hồi và hỗ trợ đầy đủ các micro-animations.
+Hệ thống chatbot nhóm sử dụng kiến trúc **FastAPI Backend + ReactJS Frontend (Vite)** giúp tối ưu hóa giao diện người dùng, tăng tốc độ phản hồi và hỗ trợ đầy đủ các micro-animations.
 
 ### Bước 1: Khởi động Backend Server (FastAPI)
 ```bash
-# Khởi chạy server FastAPI tại cổng 8000
-python -m uvicorn group.server:app --host 127.0.0.1 --port 8000 --reload
+# Từ thư mục gốc D8/
+python -m uvicorn group.server:app --host 127.0.0.1 --port 8000
 ```
+Backend sẽ chạy tại `http://127.0.0.1:8000`. Có thể kiểm tra trạng thái API tại `http://127.0.0.1:8000/api/stats`.
 
 ### Bước 2: Khởi động ReactJS Frontend (Vite)
 ```bash
@@ -224,9 +249,36 @@ Giao diện sẽ tự động mở hoặc truy cập được qua đường dẫ
 ### Phiên bản giao diện cũ (Streamlit)
 Nếu cần đối chiếu hoặc khởi chạy phiên bản giao diện Streamlit:
 ```bash
-streamlit run group/app.py
+# Sử dụng launcher script để tránh lỗi xung đột PyTorch
+python group/run_app.py
+
+# Hoặc chạy trực tiếp (có thể gặp lỗi nếu cài PyTorch)
+streamlit run group/app.py --server.fileWatcherType none
 ```
 
 ---
 
-## Lưu ý: Hãy giữ lại repo này nếu như bạn học track 3 giai đoạn 2, chúng ta sẽ phát triển tiếp dự án lên knowledge graph để khắc phục các câu hỏi hóc búa khi có các câu hỏi khó.
+## Cấu Trúc Thư Mục Nhóm
+
+```
+group/
+├── server.py          # FastAPI Backend — API endpoints /api/chat, /api/stats
+├── app.py             # Streamlit Frontend (phiên bản cũ)
+├── run_app.py         # Launcher script cho Streamlit (hotpatch PyTorch)
+├── frontend/          # ReactJS Frontend (Vite)
+│   ├── src/
+│   │   ├── App.jsx    # Component chính — Chat UI, Citation Badges
+│   │   └── index.css  # Glassmorphism dark theme CSS
+│   └── package.json
+├── evaluation/        # RAG Evaluation Pipeline (DeepEval)
+│   ├── golden_dataset.json
+│   ├── eval_pipeline.py
+│   └── results.md
+└── README.md          # File này
+```
+
+---
+
+## Lưu ý
+
+Hãy giữ lại repo này nếu như bạn học track 3 giai đoạn 2, chúng ta sẽ phát triển tiếp dự án lên knowledge graph để khắc phục các câu hỏi hóc búa khi có các câu hỏi khó.
