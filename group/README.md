@@ -189,11 +189,28 @@ run_dashboard()
 
 ## Hướng Dẫn Chạy
 
-```bash
-# Cài đặt dependencies
-pip install -r requirements.txt
+Hệ thống chatbot nhóm đã được nâng cấp sang kiến trúc **FastAPI Backend + ReactJS Frontend (Vite)** giúp tối ưu hóa giao diện người dùng, tăng tốc độ phản hồi và hỗ trợ đầy đủ các micro-animations.
 
-# Chạy app
+### Bước 1: Khởi động Backend Server (FastAPI)
+```bash
+# Khởi chạy server FastAPI tại cổng 8000
+python -m uvicorn group.server:app --host 127.0.0.1 --port 8000 --reload
+```
+
+### Bước 2: Khởi động ReactJS Frontend (Vite)
+```bash
+# Di chuyển vào thư mục frontend và cài đặt (nếu chạy lần đầu)
+cd group/frontend
+npm install
+
+# Khởi chạy giao diện ReactJS tại cổng 5173
+npm run dev
+```
+Giao diện sẽ tự động mở hoặc truy cập được qua đường dẫn `http://localhost:5173`.
+
+### Phiên bản giao diện cũ (Streamlit)
+Nếu cần đối chiếu hoặc khởi chạy phiên bản giao diện Streamlit:
+```bash
 streamlit run group/app.py
 ```
 
