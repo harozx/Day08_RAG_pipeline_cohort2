@@ -50,6 +50,8 @@ class ChatMessage(BaseModel):
 class ChatRequest(BaseModel):
     message: str
     history: List[ChatMessage]
+    gemini_api_key: Optional[str] = None
+    openai_api_key: Optional[str] = None
 
 class ChatResponse(BaseModel):
     answer: str
@@ -94,8 +96,8 @@ Standalone Question:"""
 
 @app.post("/api/chat", response_model=ChatResponse)
 async def chat_endpoint(request: ChatRequest):
-    api_key = os.getenv("GEMINI_API_KEY", "")
-    openai_key = os.getenv("OPENAI_API_KEY", "")
+    api_key = request.gemini_api_key or os.getenv("GEMINI_API_KEY", "")
+    openai_key = request.openai_api_key or os.getenv("OPENAI_API_KEY", "")
     
     # 1. Rewrite query with conversational context
     standalone_query = rewrite_query_with_history(request.message, request.history, api_key)

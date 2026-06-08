@@ -27,6 +27,18 @@ function App() {
     vectorized_documents: { legal: [], news: [] }
   })
   
+  // Custom API keys inputs state
+  const [userGeminiKey, setUserGeminiKey] = useState(() => localStorage.getItem('user_gemini_key') || '')
+  const [userOpenaiKey, setUserOpenaiKey] = useState(() => localStorage.getItem('user_openai_key') || '')
+  const [showKeySettings, setShowKeySettings] = useState(false)
+
+  const handleSaveKeys = () => {
+    localStorage.setItem('user_gemini_key', userGeminiKey)
+    localStorage.setItem('user_openai_key', userOpenaiKey)
+    setShowKeySettings(false)
+    alert('Đã lưu cấu hình API Key thành công! Hãy gửi tin nhắn mới để thử nghiệm.')
+  }
+  
   // Modals and UI Toggles
   const [activeModalSource, setActiveModalSource] = useState(null)
   const [expandedSourcesIdx, setExpandedSourcesIdx] = useState({})
@@ -100,7 +112,9 @@ function App() {
         },
         body: JSON.stringify({
           message: queryText,
-          history: apiHistory
+          history: apiHistory,
+          gemini_api_key: userGeminiKey || undefined,
+          openai_api_key: userOpenaiKey || undefined
         })
       })
 
@@ -285,6 +299,98 @@ function App() {
                 </span>
               </div>
             </div>
+          </div>
+          
+          {/* Custom API key configuration toggle */}
+          <div style={{ marginTop: '10px' }}>
+            <button 
+              style={{
+                width: '100%',
+                background: 'rgba(99, 102, 241, 0.15)',
+                border: '1px solid rgba(99, 102, 241, 0.3)',
+                color: '#a5b4fc',
+                borderRadius: '8px',
+                padding: '6px 10px',
+                fontSize: '0.8rem',
+                fontWeight: '600',
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justify-content: 'center',
+                gap: '6px'
+              }}
+              onClick={() => setShowKeySettings(!showKeySettings)}
+            >
+              🔑 {showKeySettings ? 'Đóng cài đặt Key' : 'Cài đặt API Key riêng'}
+            </button>
+            
+            {showKeySettings && (
+              <div style={{ 
+                marginTop: '10px', 
+                padding: '12px', 
+                background: 'rgba(30, 41, 59, 0.4)', 
+                border: '1px solid rgba(99, 102, 241, 0.2)', 
+                borderRadius: '10px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '8px'
+              }}>
+                <div>
+                  <label style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'block', marginBottom: '4px', textAlign: 'left' }}>Gemini API Key:</label>
+                  <input 
+                    type="password" 
+                    style={{
+                      width: '100%',
+                      background: '#070913',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      borderRadius: '6px',
+                      padding: '6px 8px',
+                      color: 'white',
+                      fontSize: '0.8rem',
+                      outline: 'none'
+                    }}
+                    placeholder="AIzaSy..."
+                    value={userGeminiKey}
+                    onChange={(e) => setUserGeminiKey(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <label style={{ fontSize: '0.72rem', color: '#94a3b8', display: 'block', marginBottom: '4px', textAlign: 'left' }}>OpenAI API Key:</label>
+                  <input 
+                    type="password" 
+                    style={{
+                      width: '100%',
+                      background: '#070913',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      borderRadius: '6px',
+                      padding: '6px 8px',
+                      color: 'white',
+                      fontSize: '0.8rem',
+                      outline: 'none'
+                    }}
+                    placeholder="sk-..."
+                    value={userOpenaiKey}
+                    onChange={(e) => setUserOpenaiKey(e.target.value)}
+                  />
+                </div>
+                <button 
+                  style={{
+                    background: 'linear-gradient(135deg, #4f46e5 0%, #7c3aed 100%)',
+                    border: 'none',
+                    color: 'white',
+                    borderRadius: '6px',
+                    padding: '6px 12px',
+                    fontSize: '0.8rem',
+                    fontWeight: '600',
+                    cursor: 'pointer',
+                    marginTop: '4px'
+                  }}
+                  onClick={handleSaveKeys}
+                >
+                  Lưu cấu hình
+                </button>
+              </div>
+            )}
           </div>
         </div>
 
