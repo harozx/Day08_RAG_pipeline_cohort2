@@ -170,20 +170,33 @@ run_dashboard()
 
 ## Kiến Trúc Hệ Thống
 
-```
-[Vẽ diagram kiến trúc ở đây]
+Dưới đây là sơ đồ luồng dữ liệu của hệ thống **Drug Law Conversational RAG** từ lúc nhận yêu cầu của người dùng, truy xuất dữ liệu lai (Hybrid Retrieval), chấm điểm lại (Reranking) cho tới khi sinh câu trả lời thông qua LLM hoặc chế độ ngoại tuyến dự phòng (Offline Fallback):
+
+```mermaid
+graph TD
+    User([User / Trình duyệt Client]) <--> |1. HTTP POST /api/chat | API[FastAPI Backend Server]
+    API --> |2. Query Rewriting| LLM_Rewrite[Gemini 2.5 Flash / Lịch sử hội thoại]
+    API --> |3. Hybrid Retrieval| Retrieval[Retrieval Pipeline - Task 9]
+    Retrieval --> |Tìm kiếm từ khóa| BM25[BM25 Lexical Engine - Task 6]
+    Retrieval --> |Tìm kiếm ngữ nghĩa| Semantic[Dense Vector Search - Task 5]
+    BM25 --> |Đoạn văn bản| Docs[(Vector Store / Standardized Markdown Chunks)]
+    Semantic --> |Embedding all-MiniLM-L6-v2| Docs
+    Retrieval --> |4. Chấm điểm lại| Rerank[Reranking / RRF / Cosine Fallback - Task 7]
+    Rerank --> |5. Tối ưu thứ tự| Context[Reorder for LLM / Tránh Lost in the Middle]
+    API --> |6. Sinh câu trả lời| Generator[Generator Engine - Task 10]
+    Generator --> |Lựa chọn 1| Gemini[Gemini 2.5 Flash API]
+    Generator --> |Lựa chọn 2| OpenAI[OpenAI GPT-4o-mini API]
+    Generator --> |Dự phòng Ngoại tuyến| Offline[Local Rule-based Assembler]
 ```
 
 ---
 
 ## Phân Công Công Việc
 
-| Thành viên | MSSV | Nhiệm vụ | Trạng thái |
+| Thành viên | MSSV | Nhiệm vụ chính | Trạng thái |
 |-----------|------|----------|------------|
-| | | | |
-| | | | |
-| | | | |
-| | | | |
+| **Cao Văn Hảo** | 2A202600874 | - Xây dựng Pipeline RAG cá nhân (Tasks 1-10)<br>- Phát triển FastAPI Backend (`group/server.py`) hỗ trợ CORS và đa khóa API.<br>- Thiết kế & phát triển Frontend ReactJS (`group/frontend/`) với giao diện Glassmorphism tối màu cao cấp.<br>- Phát triển công cụ phân giải Citation Badge động & Modal hiển thị nguồn tài liệu chi tiết. | **Hoàn thành** |
+| **Phạm Quang Huy** | 2A202600586 | - Xây dựng Pipeline RAG cá nhân (Tasks 1-10)<br>- Thiết kế và biên soạn tập dữ liệu vàng **Golden Dataset** (15+ cặp câu hỏi-đáp RAG pháp luật).<br>- Phát triển Pipeline đánh giá tự động sử dụng thư viện **DeepEval** (`group/evaluation/`).<br>- Chạy thử nghiệm và viết báo cáo so sánh kết quả A/B giữa các cấu hình của RAG pipeline. | **Hoàn thành** |
 
 ---
 
