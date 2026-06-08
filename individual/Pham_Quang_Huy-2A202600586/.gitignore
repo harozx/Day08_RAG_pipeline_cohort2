@@ -1,0 +1,26 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.env.*
+env/
+venv/
+.venv/
+
+# Unit tests / cache
+.pytest_cache/
+.deepeval/
+.cache/
+*.log
+
+# IDEs
+.vscode/
+.idea/
+
+# Generated/recreatable assets
+chroma_db/
+data/standardized/
+data/vector_store.pkl
