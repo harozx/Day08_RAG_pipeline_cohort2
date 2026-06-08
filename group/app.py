@@ -2,6 +2,24 @@ import os
 import sys
 import time
 from pathlib import Path
+
+# Hotpatch PyTorch to prevent Streamlit's local sources watcher from crashing
+# when examining torch._classes.__getattr__ for missing custom classes
+try:
+    import torch
+    original_getattr = torch._classes._ClassesParent.__getattr__
+    def patched_getattr(self, attr):
+        if attr in ('__path__', '__file__', '__package__', '_path'):
+            raise AttributeError(f"Mocking {attr} to avoid PyTorch crash")
+        try:
+            return original_getattr(self, attr)
+        except RuntimeError as e:
+            raise AttributeError(str(e)) from e
+    torch._classes._ClassesParent.__getattr__ = patched_getattr
+    print("Successfully hotpatched torch.classes to prevent Streamlit watcher crash.")
+except Exception as e:
+    pass
+
 import streamlit as st
 from dotenv import load_dotenv
 
