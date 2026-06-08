@@ -316,7 +316,7 @@ function App() {
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
-                justify-content: 'center',
+                justifyContent: 'center',
                 gap: '6px'
               }}
               onClick={() => setShowKeySettings(!showKeySettings)}
