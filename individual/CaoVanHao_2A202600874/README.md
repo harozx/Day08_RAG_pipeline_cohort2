@@ -38,7 +38,7 @@ day_08_rag_pipeline_v2/
 │   └── task10_generation.py
 ├── notebooks/
 │   └── demo.ipynb         ← Notebook demo cho buổi trình bày
-├── group_project/
+├── group/
 │   └── README.md          ← Hướng dẫn bài tập nhóm
 ├── requirements.txt
 └── .env.example
@@ -498,9 +498,9 @@ run_dashboard()
 
 #### Deliverable Evaluation
 
-- [ ] File `group_project/evaluation/golden_dataset.json` — 15+ cặp Q&A
-- [ ] File `group_project/evaluation/eval_pipeline.py` — script chạy evaluation
-- [ ] File `group_project/evaluation/results.md` — bảng điểm + phân tích
+- [ ] File `group/evaluation/golden_dataset.json` — 15+ cặp Q&A
+- [ ] File `group/evaluation/eval_pipeline.py` — script chạy evaluation
+- [ ] File `group/evaluation/results.md` — bảng điểm + phân tích
 - [ ] So sánh A/B ít nhất 2 configs
 
 ---
@@ -511,7 +511,7 @@ run_dashboard()
 2. **Demo hoạt động được** trong buổi trình bày (chạy local hoặc deploy)
 3. **Evaluation pipeline** chạy được và có báo cáo kết quả
 4. **Code push lên repository** chung của nhóm
-5. **README** mô tả kiến trúc và phân công (xem `group_project/README.md`)
+5. **README** mô tả kiến trúc và phân công (xem `group/README.md`)
 
 ---
 

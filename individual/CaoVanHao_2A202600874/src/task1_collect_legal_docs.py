@@ -27,21 +27,12 @@ def setup_directory():
     """Tạo thư mục data/landing/legal/ nếu chưa có."""
     DATA_DIR.mkdir(parents=True, exist_ok=True)
     print(f"✓ Thư mục đã sẵn sàng: {DATA_DIR}")
-
-
-# TODO: Tải file PDF/DOCX về DATA_DIR
-# Có thể tải thủ công hoặc viết script download nếu có direct link.
-#
-# Ví dụ nếu có direct link:
-#
-# import requests
-#
-# def download_file(url: str, filename: str):
-#     response = requests.get(url)
-#     filepath = DATA_DIR / filename
-#     filepath.write_bytes(response.content)
-#     print(f"✓ Đã tải: {filepath}")
+    
+    # Generate the assets programmatically
+    from src.generate_assets import generate_all_assets
+    generate_all_assets()
 
 
 if __name__ == "__main__":
     setup_directory()
+

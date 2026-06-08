@@ -1,0 +1,31 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environments
+.env
+.env_old
+env/
+venv/
+.venv/
+ENV/
+
+# Unit tests / cache
+.pytest_cache/
+.deepeval/
+.cache/
+*.log
+
+# IDEs
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Generated/recreatable assets
+data/vectorstore.pkl
+data/standardized/

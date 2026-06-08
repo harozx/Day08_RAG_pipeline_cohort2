@@ -1,0 +1,21 @@
+# Environments
+.env
+.env.*
+env/
+venv/
+.venv/
+
+# Testing & Caching
+.pytest_cache/
+.deepeval/
+__pycache__/
+*.pyc
+*.log
+.tempmediaStorage/
+*.zip
+
+# IDEs
+.vscode/
+.idea/
+*.suo
+*.sw?

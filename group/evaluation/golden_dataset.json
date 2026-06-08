@@ -1,0 +1,82 @@
+[
+  {
+    "question": "Hình phạt cho tội tàng trữ trái phép chất ma tuý theo Điều 249 Bộ luật Hình sự?",
+    "expected_answer": "Phạt tù từ 1 năm đến 5 năm đối với trường hợp tàng trữ từ 0,1 gam đến dưới 2 gam heroin, cocaine, methamphetamine; hoặc phạt tù ở các khung hình phạt cao hơn tùy theo khối lượng ma túy.",
+    "expected_context": "bo-luat-hinh-su-2015.md"
+  },
+  {
+    "question": "Luật Phòng chống ma tuý 2021 quy định những hình thức cai nghiện nào?",
+    "expected_answer": "Quy định hai hình thức cai nghiện ma túy là cai nghiện ma túy tự nguyện và cai nghiện ma túy bắt buộc.",
+    "expected_context": "luat-phong-chong-ma-tuy-2021.md"
+  },
+  {
+    "question": "Diễn viên hài Hữu Tín bị phạt bao nhiêu năm tù và về tội gì?",
+    "expected_answer": "Trần Hữu Tín (diễn viên hài Hữu Tín) bị TAND quận 8 tuyên phạt 7 năm 6 tháng tù về tội Tổ chức sử dụng trái phép chất ma túy.",
+    "expected_context": "article_01.md"
+  },
+  {
+    "question": "Bị can Andrea Aybar Carmona (người mẫu An Tây) bị truy tố về các tội danh nào?",
+    "expected_answer": "Andrea Aybar Carmona (người mẫu An Tây) bị truy tố về hai tội: Tổ chức sử dụng trái phép chất ma túy và Tàng trữ trái phép chất ma túy.",
+    "expected_context": "article_02.md"
+  },
+  {
+    "question": "Ca sĩ Chi Dân (Nguyễn Trung Hiếu) bị truy tố về tội danh gì và bị rủ rê sử dụng ma túy ở đâu?",
+    "expected_answer": "Nguyễn Trung Hiếu (ca sĩ Chi Dân) bị truy tố về tội Tổ chức sử dụng trái phép chất ma túy. Anh đã rủ rê bạn bè sử dụng ma túy tại một căn nhà ở quận Tân Bình.",
+    "expected_context": "article_02.md"
+  },
+  {
+    "question": "Nguyễn Đỗ Trúc Phương bị truy tố về tội danh gì?",
+    "expected_answer": "Nguyễn Đỗ Trúc Phương bị truy tố về tội Tổ chức sử dụng trái phép chất ma túy.",
+    "expected_context": "article_02.md"
+  },
+  {
+    "question": "Bị cáo Nguyễn Hoàng Phi trong vụ án Hữu Tín bị phạt bao nhiêu năm tù và về tội gì?",
+    "expected_answer": "Nguyễn Hoàng Phi bị phạt 13 năm 6 tháng tù về tội Tàng trữ trái phép chất ma túy và Tổ chức sử dụng trái phép chất ma túy.",
+    "expected_context": "article_01.md"
+  },
+  {
+    "question": "Khám xét chỗ ở của người mẫu An Tây cơ quan chức năng thu giữ được lượng ma túy là bao nhiêu?",
+    "expected_answer": "Khám xét chỗ ở của Andrea Aybar Carmona (An Tây) thu giữ được 0,1184g methamphetamine và 0,7524g cần sa.",
+    "expected_context": "article_02.md"
+  },
+  {
+    "question": "Theo Điều 250 Bộ luật Hình sự 2015, tội vận chuyển trái phép chất ma túy có thể bị phạt cao nhất là hình phạt nào?",
+    "expected_answer": "Hình phạt cao nhất cho tội vận chuyển trái phép chất ma túy theo Điều 250 Bộ luật Hình sự là tù chung thân hoặc tử hình.",
+    "expected_context": "bo-luat-hinh-su-2015.md"
+  },
+  {
+    "question": "Độ tuổi chịu trách nhiệm hình sự đối với tội phạm về ma túy theo Bộ luật Hình sự?",
+    "expected_answer": "Người từ đủ 16 tuổi trở lên phải chịu trách nhiệm hình sự về mọi tội phạm. Người từ đủ 14 tuổi đến dưới 16 tuổi phải chịu trách nhiệm hình sự về tội phạm rất nghiêm trọng hoặc đặc biệt nghiêm trọng như quy định tại Điều 249, 250, 251, 252...",
+    "expected_context": "bo-luat-hinh-su-2015.md"
+  },
+  {
+    "question": "Các cơ quan chuyên trách phòng, chống tội phạm về ma túy gồm những cơ quan nào theo Luật Phòng, chống ma túy 2021?",
+    "expected_answer": "Gồm cơ quan chuyên trách phòng, chống tội phạm về ma túy thuộc Công an nhân dân, cơ quan chuyên trách thuộc Bộ đội Biên phòng, Cảnh sát biển và Hải quan.",
+    "expected_context": "luat-phong-chong-ma-tuy-2021.md"
+  },
+  {
+    "question": "Trách nhiệm của gia đình người nghiện ma túy theo Luật Phòng, chống ma túy 2021?",
+    "expected_answer": "Gia đình có trách nhiệm cung cấp thông tin về hành vi sử dụng ma túy, hỗ trợ người nghiện thực hiện cai nghiện, và động viên, giúp đỡ người nghiện chấp hành các quy định về cai nghiện.",
+    "expected_context": "luat-phong-chong-ma-tuy-2021.md"
+  },
+  {
+    "question": "Theo Nghị định 105/2021/NĐ-CP, việc xét nghiệm chất ma túy trong cơ thể được thực hiện đối với những trường hợp nào?",
+    "expected_answer": "Xét nghiệm chất ma túy trong cơ thể được thực hiện đối với người có hành vi sử dụng trái phép chất ma túy, người bị nghi ngờ sử dụng ma túy, hoặc theo yêu cầu của cơ quan có thẩm quyền.",
+    "expected_context": "nghi-dinh-105-2021.md"
+  },
+  {
+    "question": "Thời hạn quản lý sau cai nghiện ma túy tại nơi cư trú là bao lâu theo Luật Phòng, chống ma túy 2021?",
+    "expected_answer": "Thời hạn quản lý sau cai nghiện ma túy tại nơi cư trú là từ 1 năm đến 2 năm đối với người đã hoàn thành cai nghiện bắt buộc hoặc cai nghiện tự nguyện tại cơ sở.",
+    "expected_context": "luat-phong-chong-ma-tuy-2021.md"
+  },
+  {
+    "question": "Chuyên án VN10 liên quan đến đối tượng nào vận chuyển trái phép chất ma túy tại sân bay Tân Sơn Nhất?",
+    "expected_answer": "Chuyên án VN10 liên quan đến vụ việc phát hiện 4 nữ tiếp viên hàng không bị lợi dụng vận chuyển trái phép chất ma túy qua sân bay quốc tế Tân Sơn Nhất vào tháng 3-2023.",
+    "expected_context": "article_02.md"
+  },
+  {
+    "question": "Hành vi tổ chức sử dụng trái phép chất ma túy bị xử lý hình sự theo Điều nào của Bộ luật Hình sự 2015?",
+    "expected_answer": "Hành vi tổ chức sử dụng trái phép chất ma túy bị xử lý hình sự theo Điều 255 của Bộ luật Hình sự 2015.",
+    "expected_context": "bo-luat-hinh-su-2015.md"
+  }
+]

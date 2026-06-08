@@ -151,9 +151,9 @@ run_dashboard()
 
 ### Deliverable Evaluation
 
-- [ ] File `group_project/evaluation/golden_dataset.json` — 15+ cặp Q&A
-- [ ] File `group_project/evaluation/eval_pipeline.py` — script chạy evaluation
-- [ ] File `group_project/evaluation/results.md` — bảng điểm + phân tích
+- [ ] File `group/evaluation/golden_dataset.json` — 15+ cặp Q&A
+- [ ] File `group/evaluation/eval_pipeline.py` — script chạy evaluation
+- [ ] File `group/evaluation/results.md` — bảng điểm + phân tích
 - [ ] So sánh A/B ít nhất 2 configs
 
 ---
